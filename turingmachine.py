@@ -65,7 +65,7 @@ class TuringMachine:
         self.tape3.move("R")
         self.tape3.write(initial_state)
 
-    def run(self, word, initial_state, halt_state, verbose = False):
+    def execute(self, word, initial_state, halt_state, verbose = False):
         """Executes the machine, prints if the word is Accepted or Crashes."""
         self.tape_setup(word, initial_state)
         # Main Universal Turing Machine execution loop
@@ -74,23 +74,19 @@ class TuringMachine:
         # Do note that the machine can infinite loop if its
         # not programmed properly.
         while self.tape3.read() != halt_state:
-            print self
             current_state = self.tape3.read()
             input2 = self.tape2.read()
             instruction = self.lookup_transition(current_state, input2)
-            print "instruction: " + str(instruction)
             if instruction:
                 output = instruction[2]
                 movement = instruction[3]
                 next_state = instruction[4]
-                # We write in tape2 according to transition
-                self.tape2.write(output)
-                # And we move them too
-                self.set_head_on_transition(instruction)
-                self.tape2.move(movement)
-                # tape3 is reserved for just displaying the current state
-                self.tape3.write(next_state)
             else:
-                raise MachineException("No Transition table for desired inputs on current state.")
+                raise MachineException("CRASH")
+            yield self
+            self.tape2.write(output)
+            self.set_head_on_transition(instruction)
+            self.tape2.move(movement)
+            self.tape3.write(next_state)
+        yield self
         print "ACCEPT"
-        print self
